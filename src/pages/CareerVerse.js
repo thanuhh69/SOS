@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';// ── DATA ──────────────────────────────────────────────────────────────────────
+import { useState, useEffect, useRef, useCallback } from "react";
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
 const DOMAINS = [
   {
     id: "ai-ml", name: "AI & Machine Learning", icon: "🤖", color: "#1E3A5F", accent: "#3BA99C",
