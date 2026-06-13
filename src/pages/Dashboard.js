@@ -76,8 +76,7 @@ function Dashboard({ onNavigate }) {
     <div style={{ background: '#0f0f1a', minHeight: '100vh', fontFamily: 'sans-serif', color: 'white', display: 'flex' }}>
 
       {/* Sidebar */}
-      <div style={{ width: '220px', background: '#1a1a2e', borderRight: '1px solid #2a2a4a', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', position: 'sticky', top: 0, height: '100vh' }}>
-
+      <div style={{ width: window.innerWidth < 768 ? '160px' : '220px', background: '#1a1a2e', borderRight: '1px solid #2a2a4a', padding: window.innerWidth < 768 ? '16px 8px' : '24px 16px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', position: 'sticky', top: 0, height: '100vh' }}>
         <h2 style={{ color: '#7C3AED', marginBottom: '16px', fontSize: '20px' }}>StudentOS</h2>
 
         {/* User info */}
@@ -92,9 +91,9 @@ function Dashboard({ onNavigate }) {
         </div>
 
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED' : 'transparent', color: activeTab === t.id ? 'white' : '#aaa', fontSize: '13px', textAlign: 'left' }}>
-            {t.icon} {t.label}
-          </button>
+          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED' : 'transparent', color: activeTab === t.id ? 'white' : '#aaa', fontSize: window.innerWidth < 768 ? '11px' : '13px', textAlign: 'left' }}>
+           {t.icon} {window.innerWidth < 768 ? t.label.split(' ')[0] : t.label}
+           </button>
         ))}
 
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
