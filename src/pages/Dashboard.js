@@ -2,7 +2,7 @@ import CareerVerseAI from './CareerVerse';
 import React, { useState } from 'react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
-const API_KEY = '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';
+const API_KEY = process.env.REACT_APP_GROQ_API_KEY || "";
 
 async function askClaude(prompt) {
 
@@ -70,27 +70,7 @@ function Dashboard({ onNavigate }) {
     </div>
   );
 
-  const comingSoon = (title, icon, features) => (
-    <div>
-      <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>{icon} {title}</h2>
-      <p style={{ color: '#aaa', marginBottom: '24px' }}>Features available in this module</p>
-      {card(
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-          {features.map((f, i) => (
-            <span key={i} style={{ padding: '8px 16px', background: '#0f0f1a', border: '1px solid #2a2a4a', borderRadius: '8px', fontSize: '13px', color: '#aaa' }}>
-              {f}
-            </span>
-          ))}
-        </div>
-      )}
-      {card(
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚧</div>
-          <p style={{ color: '#aaa' }}>This feature is coming in the next build!</p>
-        </div>
-      )}
-    </div>
-  );
+
 
   return (
     <div style={{ background: '#0f0f1a', minHeight: '100vh', fontFamily: 'sans-serif', color: 'white', display: 'flex' }}>
