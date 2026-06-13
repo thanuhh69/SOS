@@ -1,4 +1,4 @@
-import CareerVerseAI from './CareerVerseAI';
+import CareerVerseAI from './CareerVerse';
 import React, { useState } from 'react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
