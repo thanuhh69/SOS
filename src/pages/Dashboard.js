@@ -72,14 +72,15 @@ function Dashboard({ onNavigate }) {
 
 
 
-  return (
-    <div style={{ background: '#0f0f1a', minHeight: '100vh', fontFamily: 'sans-serif', color: 'white', display: 'flex' }}>
+const isMobile = window.innerWidth < 768;
 
-      {/* Sidebar */}
-      <div style={{ width: window.innerWidth < 768 ? '160px' : '220px', background: '#1a1a2e', borderRight: '1px solid #2a2a4a', padding: window.innerWidth < 768 ? '16px 8px' : '24px 16px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', position: 'sticky', top: 0, height: '100vh' }}>
+return (
+  <div style={{ background: '#0f0f1a', minHeight: '100vh', fontFamily: 'sans-serif', color: 'white', display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
+
+    {/* Desktop Sidebar */}
+    {!isMobile && (
+      <div style={{ width: '220px', background: '#1a1a2e', borderRight: '1px solid #2a2a4a', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', position: 'sticky', top: 0, height: '100vh' }}>
         <h2 style={{ color: '#7C3AED', marginBottom: '16px', fontSize: '20px' }}>StudentOS</h2>
-
-        {/* User info */}
         <div style={{ background: '#0f0f1a', border: '1px solid #2a2a4a', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #7C3AED, #3B82F6)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '700', flexShrink: 0 }}>
             {user?.displayName ? user.displayName[0].toUpperCase() : user?.email?.[0].toUpperCase() || 'S'}
@@ -89,13 +90,11 @@ function Dashboard({ onNavigate }) {
             <div style={{ fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email || ''}</div>
           </div>
         </div>
-
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED' : 'transparent', color: activeTab === t.id ? 'white' : '#aaa', fontSize: window.innerWidth < 768 ? '11px' : '13px', textAlign: 'left' }}>
-           {t.icon} {window.innerWidth < 768 ? t.label.split(' ')[0] : t.label}
-           </button>
+          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED' : 'transparent', color: activeTab === t.id ? 'white' : '#aaa', fontSize: '13px', textAlign: 'left' }}>
+            {t.icon} {t.label}
+          </button>
         ))}
-
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <button onClick={() => onNavigate('profile')} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #2a2a4a', background: 'transparent', color: '#aaa', cursor: 'pointer', fontSize: '13px', textAlign: 'left' }}>
             👤 My Profile
@@ -105,29 +104,75 @@ function Dashboard({ onNavigate }) {
           </button>
         </div>
       </div>
+    )}
 
-      {/* Main Content */}
-      <div style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
-        {activeTab === 'home' && <HomeTab onNavigate={onNavigate} user={user} />}
-        {activeTab === 'placement' && <PlacementTab />}
-        {activeTab === 'career' && <CareerTab />}
-        {activeTab === 'resume' && <ResumeTab />}
-        {activeTab === 'hackathon' && <HackathonTab />}
-        {activeTab === 'project' && <ProjectTab />}
-        {activeTab === 'study' && <StudyTab />}
-        {activeTab === 'coding' && <CodingTab />}
-        {activeTab === 'preperation' && <PlacementPrepTab />} 
-        {activeTab === 'certifications' && <CertificationsTab />}
-        {activeTab === 'internship' && <InternshipTab />}
-        {activeTab === 'community' && <CommunityTab />}
-        {activeTab === 'events' && <EventsTab />}
-        {activeTab === 'productivity' && <ProductivityTab />}
-        {activeTab === 'skills' && <SkillTrackerTab />}
-        {activeTab === 'careerverse' && <CareerVerseTab />}
+    {/* Mobile Header */}
+    {isMobile && (
+      <div style={{ background: '#1a1a2e', borderBottom: '1px solid #2a2a4a', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
+        <h2 style={{ color: '#7C3AED', fontSize: '18px', margin: 0 }}>StudentOS</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #7C3AED, #3B82F6)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '700' }}>
+            {user?.displayName ? user.displayName[0].toUpperCase() : user?.email?.[0].toUpperCase() || 'S'}
+          </div>
+          <button onClick={() => onNavigate('profile')} style={{ background: 'transparent', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '20px' }}>👤</button>
+          <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '20px' }}>🚪</button>
+        </div>
       </div>
+    )}
+
+    {/* Main Content */}
+    <div style={{ flex: 1, padding: isMobile ? '16px' : '32px', overflowY: 'auto', paddingBottom: isMobile ? '80px' : '32px' }}>
+      {activeTab === 'home' && <HomeTab onNavigate={onNavigate} user={user} />}
+      {activeTab === 'placement' && <PlacementTab />}
+      {activeTab === 'career' && <CareerTab />}
+      {activeTab === 'resume' && <ResumeTab />}
+      {activeTab === 'hackathon' && <HackathonTab />}
+      {activeTab === 'project' && <ProjectTab />}
+      {activeTab === 'study' && <StudyTab />}
+      {activeTab === 'coding' && <CodingTab />}
+      {activeTab === 'preperation' && <PlacementPrepTab />}
+      {activeTab === 'certifications' && <CertificationsTab />}
+      {activeTab === 'internship' && <InternshipTab />}
+      {activeTab === 'community' && <CommunityTab />}
+      {activeTab === 'events' && <EventsTab />}
+      {activeTab === 'productivity' && <ProductivityTab />}
+      {activeTab === 'skills' && <SkillTrackerTab />}
+      {activeTab === 'careerverse' && <CareerVerseTab />}
     </div>
-  );
-}
+
+    {/* Mobile Bottom Navigation */}
+    {isMobile && (
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#1a1a2e', borderTop: '1px solid #2a2a4a', display: 'flex', justifyContent: 'space-around', padding: '8px 0', zIndex: 100 }}>
+        {[
+          { id: 'home', icon: '🏠', label: 'Home' },
+          { id: 'placement', icon: '📊', label: 'Predict' },
+          { id: 'career', icon: '🤖', label: 'Career' },
+          { id: 'resume', icon: '📄', label: 'Resume' },
+          { id: 'more', icon: '☰', label: 'More' },
+        ].map(t => (
+          <button key={t.id} onClick={() => t.id === 'more' ? setShowMoreMenu(!showMoreMenu) : setActiveTab(t.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED22' : 'transparent', color: activeTab === t.id ? '#7C3AED' : '#aaa', fontSize: '10px', minWidth: '50px' }}>
+            <span style={{ fontSize: '20px' }}>{t.icon}</span>
+            {t.label}
+          </button>
+        ))}
+      </div>
+    )}
+
+    {/* Mobile More Menu */}
+    {isMobile && showMoreMenu && (
+      <div style={{ position: 'fixed', bottom: '65px', left: 0, right: 0, background: '#1a1a2e', borderTop: '1px solid #2a2a4a', padding: '16px', zIndex: 99, maxHeight: '60vh', overflowY: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+          {tabs.filter(t => !['home', 'placement', 'career', 'resume'].includes(t.id)).map(t => (
+            <button key={t.id} onClick={() => { setActiveTab(t.id); setShowMoreMenu(false); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '12px 8px', borderRadius: '10px', border: '1px solid #2a2a4a', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED22' : '#0f0f1a', color: activeTab === t.id ? '#7C3AED' : '#aaa', fontSize: '11px', textAlign: 'center' }}>
+              <span style={{ fontSize: '22px' }}>{t.icon}</span>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
 
 function HomeTab({ onNavigate, user }) {
   return (
