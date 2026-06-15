@@ -1,5 +1,5 @@
 import CareerVerseAI from './CareerVerse';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 const API_KEY = process.env.REACT_APP_GROQ_API_KEY || "";
@@ -72,7 +72,14 @@ function Dashboard({ onNavigate }) {
 
 
 
-const isMobile = window.innerWidth < 768;
+const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+useEffect(() => {
+  const handleResize = () => setIsMobile(window.innerWidth < 768);
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, 
+[]);
 
 return (
   <div style={{ background: '#0f0f1a', minHeight: '100vh', fontFamily: 'sans-serif', color: 'white', display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
