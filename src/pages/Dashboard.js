@@ -2,43 +2,37 @@ import CareerVerseAI from './CareerVerse';
 import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
+
 const API_KEY = process.env.REACT_APP_GROQ_API_KEY || "";
 
 async function askClaude(prompt) {
-
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-
     method: 'POST',
-
     headers: {
-
       'Content-Type': 'application/json',
-
       'Authorization': `Bearer ${API_KEY}`
-
     },
-
     body: JSON.stringify({
-
       model: 'llama-3.1-8b-instant',
-
       messages: [{ role: 'user', content: prompt }],
-
       max_tokens: 1000
-
     })
-
   });
-
   const data = await res.json();
-
   return data.choices[0].message.content;
-
 }
 
 function Dashboard({ onNavigate }) {
   const [activeTab, setActiveTab] = useState('home');
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const user = auth.currentUser;
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const tabs = [
     { id: 'home', icon: '🏠', label: 'Home' },
@@ -64,122 +58,106 @@ function Dashboard({ onNavigate }) {
     onNavigate('home');
   };
 
-  const card = (content) => (
-    <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
-      {content}
-    </div>
-  );
+  return (
+    <div style={{ background: '#0f0f1a', minHeight: '100vh', fontFamily: 'sans-serif', color: 'white', display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
 
-
-
-
-
-useEffect(() => {
-  const handleResize = () => setIsMobile(window.innerWidth < 768);
-  window.addEventListener('resize', handleResize);
-  return () => window.removeEventListener('resize', handleResize);
-}, 
-[]);
-
-return (
-  <div style={{ background: '#0f0f1a', minHeight: '100vh', fontFamily: 'sans-serif', color: 'white', display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
-
-    {/* Desktop Sidebar */}
-    {!isMobile && (
-      <div style={{ width: '220px', background: '#1a1a2e', borderRight: '1px solid #2a2a4a', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', position: 'sticky', top: 0, height: '100vh' }}>
-        <h2 style={{ color: '#7C3AED', marginBottom: '16px', fontSize: '20px' }}>StudentOS</h2>
-        <div style={{ background: '#0f0f1a', border: '1px solid #2a2a4a', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #7C3AED, #3B82F6)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '700', flexShrink: 0 }}>
-            {user?.displayName ? user.displayName[0].toUpperCase() : user?.email?.[0].toUpperCase() || 'S'}
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <div style={{ width: '220px', background: '#1a1a2e', borderRight: '1px solid #2a2a4a', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', position: 'sticky', top: 0, height: '100vh' }}>
+          <h2 style={{ color: '#7C3AED', marginBottom: '16px', fontSize: '20px' }}>StudentOS</h2>
+          <div style={{ background: '#0f0f1a', border: '1px solid #2a2a4a', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #7C3AED, #3B82F6)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '700', flexShrink: 0 }}>
+              {user?.displayName ? user.displayName[0].toUpperCase() : user?.email?.[0].toUpperCase() || 'S'}
+            </div>
+            <div style={{ overflow: 'hidden' }}>
+              <div style={{ fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.displayName || 'Student'}</div>
+              <div style={{ fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email || ''}</div>
+            </div>
           </div>
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.displayName || 'Student'}</div>
-            <div style={{ fontSize: '11px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email || ''}</div>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED' : 'transparent', color: activeTab === t.id ? 'white' : '#aaa', fontSize: '13px', textAlign: 'left' }}>
+              {t.icon} {t.label}
+            </button>
+          ))}
+          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <button onClick={() => onNavigate('profile')} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #2a2a4a', background: 'transparent', color: '#aaa', cursor: 'pointer', fontSize: '13px', textAlign: 'left' }}>
+              👤 My Profile
+            </button>
+            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #ef444444', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: '13px', textAlign: 'left' }}>
+              🚪 Logout
+            </button>
           </div>
         </div>
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED' : 'transparent', color: activeTab === t.id ? 'white' : '#aaa', fontSize: '13px', textAlign: 'left' }}>
-            {t.icon} {t.label}
-          </button>
-        ))}
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <button onClick={() => onNavigate('profile')} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #2a2a4a', background: 'transparent', color: '#aaa', cursor: 'pointer', fontSize: '13px', textAlign: 'left' }}>
-            👤 My Profile
-          </button>
-          <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #ef444444', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: '13px', textAlign: 'left' }}>
-            🚪 Logout
-          </button>
-        </div>
-      </div>
-    )}
+      )}
 
-    {/* Mobile Header */}
-    {isMobile && (
-      <div style={{ background: '#1a1a2e', borderBottom: '1px solid #2a2a4a', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
-        <h2 style={{ color: '#7C3AED', fontSize: '18px', margin: 0 }}>StudentOS</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #7C3AED, #3B82F6)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '700' }}>
-            {user?.displayName ? user.displayName[0].toUpperCase() : user?.email?.[0].toUpperCase() || 'S'}
+      {/* Mobile Header */}
+      {isMobile && (
+        <div style={{ background: '#1a1a2e', borderBottom: '1px solid #2a2a4a', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
+          <h2 style={{ color: '#7C3AED', fontSize: '18px', margin: 0 }}>StudentOS</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #7C3AED, #3B82F6)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '700' }}>
+              {user?.displayName ? user.displayName[0].toUpperCase() : user?.email?.[0].toUpperCase() || 'S'}
+            </div>
+            <button onClick={() => onNavigate('profile')} style={{ background: 'transparent', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '20px' }}>👤</button>
+            <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '20px' }}>🚪</button>
           </div>
-          <button onClick={() => onNavigate('profile')} style={{ background: 'transparent', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '20px' }}>👤</button>
-          <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '20px' }}>🚪</button>
         </div>
+      )}
+
+      {/* Main Content */}
+      <div style={{ flex: 1, padding: isMobile ? '16px' : '32px', overflowY: 'auto', paddingBottom: isMobile ? '80px' : '32px' }}>
+        {activeTab === 'home' && <HomeTab onNavigate={onNavigate} user={user} />}
+        {activeTab === 'placement' && <PlacementTab />}
+        {activeTab === 'career' && <CareerTab />}
+        {activeTab === 'resume' && <ResumeTab />}
+        {activeTab === 'hackathon' && <HackathonTab />}
+        {activeTab === 'project' && <ProjectTab />}
+        {activeTab === 'study' && <StudyTab />}
+        {activeTab === 'coding' && <CodingTab />}
+        {activeTab === 'preperation' && <PlacementPrepTab />}
+        {activeTab === 'certifications' && <CertificationsTab />}
+        {activeTab === 'internship' && <InternshipTab />}
+        {activeTab === 'community' && <CommunityTab />}
+        {activeTab === 'events' && <EventsTab />}
+        {activeTab === 'productivity' && <ProductivityTab />}
+        {activeTab === 'skills' && <SkillTrackerTab />}
+        {activeTab === 'careerverse' && <CareerVerseTab />}
       </div>
-    )}
 
-    {/* Main Content */}
-    <div style={{ flex: 1, padding: isMobile ? '16px' : '32px', overflowY: 'auto', paddingBottom: isMobile ? '80px' : '32px' }}>
-      {activeTab === 'home' && <HomeTab onNavigate={onNavigate} user={user} />}
-      {activeTab === 'placement' && <PlacementTab />}
-      {activeTab === 'career' && <CareerTab />}
-      {activeTab === 'resume' && <ResumeTab />}
-      {activeTab === 'hackathon' && <HackathonTab />}
-      {activeTab === 'project' && <ProjectTab />}
-      {activeTab === 'study' && <StudyTab />}
-      {activeTab === 'coding' && <CodingTab />}
-      {activeTab === 'preperation' && <PlacementPrepTab />}
-      {activeTab === 'certifications' && <CertificationsTab />}
-      {activeTab === 'internship' && <InternshipTab />}
-      {activeTab === 'community' && <CommunityTab />}
-      {activeTab === 'events' && <EventsTab />}
-      {activeTab === 'productivity' && <ProductivityTab />}
-      {activeTab === 'skills' && <SkillTrackerTab />}
-      {activeTab === 'careerverse' && <CareerVerseTab />}
-    </div>
-
-    {/* Mobile Bottom Navigation */}
-    {isMobile && (
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#1a1a2e', borderTop: '1px solid #2a2a4a', display: 'flex', justifyContent: 'space-around', padding: '8px 0', zIndex: 100 }}>
-        {[
-          { id: 'home', icon: '🏠', label: 'Home' },
-          { id: 'placement', icon: '📊', label: 'Predict' },
-          { id: 'career', icon: '🤖', label: 'Career' },
-          { id: 'resume', icon: '📄', label: 'Resume' },
-          { id: 'more', icon: '☰', label: 'More' },
-        ].map(t => (
-          <button key={t.id} onClick={() => t.id === 'more' ? setShowMoreMenu(!showMoreMenu) : setActiveTab(t.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED22' : 'transparent', color: activeTab === t.id ? '#7C3AED' : '#aaa', fontSize: '10px', minWidth: '50px' }}>
-            <span style={{ fontSize: '20px' }}>{t.icon}</span>
-            {t.label}
-          </button>
-        ))}
-      </div>
-    )}
-
-    {/* Mobile More Menu */}
-    {isMobile && showMoreMenu && (
-      <div style={{ position: 'fixed', bottom: '65px', left: 0, right: 0, background: '#1a1a2e', borderTop: '1px solid #2a2a4a', padding: '16px', zIndex: 99, maxHeight: '60vh', overflowY: 'auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-          {tabs.filter(t => !['home', 'placement', 'career', 'resume'].includes(t.id)).map(t => (
-            <button key={t.id} onClick={() => { setActiveTab(t.id); setShowMoreMenu(false); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '12px 8px', borderRadius: '10px', border: '1px solid #2a2a4a', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED22' : '#0f0f1a', color: activeTab === t.id ? '#7C3AED' : '#aaa', fontSize: '11px', textAlign: 'center' }}>
-              <span style={{ fontSize: '22px' }}>{t.icon}</span>
+      {/* Mobile Bottom Navigation */}
+      {isMobile && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#1a1a2e', borderTop: '1px solid #2a2a4a', display: 'flex', justifyContent: 'space-around', padding: '8px 0', zIndex: 100 }}>
+          {[
+            { id: 'home', icon: '🏠', label: 'Home' },
+            { id: 'placement', icon: '📊', label: 'Predict' },
+            { id: 'career', icon: '🤖', label: 'Career' },
+            { id: 'resume', icon: '📄', label: 'Resume' },
+            { id: 'more', icon: '☰', label: 'More' },
+          ].map(t => (
+            <button key={t.id} onClick={() => t.id === 'more' ? setShowMoreMenu(!showMoreMenu) : setActiveTab(t.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED22' : 'transparent', color: activeTab === t.id ? '#7C3AED' : '#aaa', fontSize: '10px', minWidth: '50px' }}>
+              <span style={{ fontSize: '20px' }}>{t.icon}</span>
               {t.label}
             </button>
           ))}
         </div>
-      </div>
-    )}
-  </div>
-);
+      )}
+
+      {/* Mobile More Menu */}
+      {isMobile && showMoreMenu && (
+        <div style={{ position: 'fixed', bottom: '65px', left: 0, right: 0, background: '#1a1a2e', borderTop: '1px solid #2a2a4a', padding: '16px', zIndex: 99, maxHeight: '60vh', overflowY: 'auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+            {tabs.filter(t => !['home', 'placement', 'career', 'resume'].includes(t.id)).map(t => (
+              <button key={t.id} onClick={() => { setActiveTab(t.id); setShowMoreMenu(false); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '12px 8px', borderRadius: '10px', border: '1px solid #2a2a4a', cursor: 'pointer', background: activeTab === t.id ? '#7C3AED22' : '#0f0f1a', color: activeTab === t.id ? '#7C3AED' : '#aaa', fontSize: '11px', textAlign: 'center' }}>
+                <span style={{ fontSize: '22px' }}>{t.icon}</span>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function HomeTab({ onNavigate, user }) {
   return (
@@ -665,6 +643,7 @@ function StudyTab() {
     </div>
   );
 }
+
 function CodingTab() {
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('Python');
@@ -704,7 +683,6 @@ function CodingTab() {
     <div>
       <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>💻 Coding Practice Hub</h2>
       <p style={{ color: '#aaa', marginBottom: '24px' }}>AI-powered coding practice for placements</p>
-
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
         {features.map(f => (
           <button key={f.id} onClick={() => setActiveFeature(f.id)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid', borderColor: activeFeature === f.id ? '#7C3AED' : '#2a2a4a', background: activeFeature === f.id ? '#7C3AED22' : 'transparent', color: activeFeature === f.id ? '#7C3AED' : '#aaa', cursor: 'pointer', fontSize: '13px' }}>
@@ -712,7 +690,6 @@ function CodingTab() {
           </button>
         ))}
       </div>
-
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
         <div style={{ display: 'flex', gap: '14px', marginBottom: '16px', flexWrap: 'wrap' }}>
           <div style={{ minWidth: '140px' }}>
@@ -736,7 +713,6 @@ function CodingTab() {
           {loading ? '⏳ Generating...' : '✨ Generate with AI'}
         </button>
       </div>
-
       {response && (
         <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -749,6 +725,7 @@ function CodingTab() {
     </div>
   );
 }
+
 function PlacementPrepTab() {
   const [role, setRole] = useState('');
   const [company, setCompany] = useState('');
@@ -787,7 +764,6 @@ function PlacementPrepTab() {
     <div>
       <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>🎯 Placement Preparation</h2>
       <p style={{ color: '#aaa', marginBottom: '24px' }}>AI-powered interview prep for Indian placements</p>
-
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
         {features.map(f => (
           <button key={f.id} onClick={() => setActiveFeature(f.id)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid', borderColor: activeFeature === f.id ? '#7C3AED' : '#2a2a4a', background: activeFeature === f.id ? '#7C3AED22' : 'transparent', color: activeFeature === f.id ? '#7C3AED' : '#aaa', cursor: 'pointer', fontSize: '13px' }}>
@@ -795,7 +771,6 @@ function PlacementPrepTab() {
           </button>
         ))}
       </div>
-
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
         <div style={{ display: 'flex', gap: '14px', marginBottom: '16px', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '180px' }}>
@@ -811,7 +786,6 @@ function PlacementPrepTab() {
           {loading ? '⏳ Generating...' : '✨ Generate with AI'}
         </button>
       </div>
-
       {response && (
         <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -824,6 +798,7 @@ function PlacementPrepTab() {
     </div>
   );
 }
+
 function CertificationsTab() {
   const [certName, setCertName] = useState('');
   const [platform, setPlatform] = useState('');
@@ -878,8 +853,6 @@ function CertificationsTab() {
     <div>
       <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>📑 Certification Tracker</h2>
       <p style={{ color: '#aaa', marginBottom: '24px' }}>Track your certifications and get AI recommendations</p>
-
-      {/* Add Certificate */}
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
         <h3 style={{ fontSize: '15px', marginBottom: '14px' }}>➕ Add Certification</h3>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -888,8 +861,6 @@ function CertificationsTab() {
           <button onClick={addCert} style={{ padding: '10px 20px', background: '#7C3AED', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '14px' }}>Add</button>
         </div>
       </div>
-
-      {/* Certificates List */}
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
         <h3 style={{ fontSize: '15px', marginBottom: '14px' }}>🏆 My Certifications ({certs.length})</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -912,8 +883,6 @@ function CertificationsTab() {
           ))}
         </div>
       </div>
-
-      {/* AI Features */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
         {features.map(f => (
           <button key={f.id} onClick={() => setActiveFeature(f.id)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid', borderColor: activeFeature === f.id ? '#7C3AED' : '#2a2a4a', background: activeFeature === f.id ? '#7C3AED22' : 'transparent', color: activeFeature === f.id ? '#7C3AED' : '#aaa', cursor: 'pointer', fontSize: '13px' }}>
@@ -935,6 +904,7 @@ function CertificationsTab() {
     </div>
   );
 }
+
 function InternshipTab() {
   const [skills, setSkills] = useState('');
   const [domain, setDomain] = useState('');
@@ -957,12 +927,7 @@ function InternshipTab() {
     { id: 'email', label: '📧 Cold Email' },
   ];
 
-  const statusColors = {
-    'Applied': '#3B82F6',
-    'Interview': '#f59e0b',
-    'Rejected': '#ef4444',
-    'Offered': '#22c55e',
-  };
+  const statusColors = { 'Applied': '#3B82F6', 'Interview': '#f59e0b', 'Rejected': '#ef4444', 'Offered': '#22c55e' };
 
   const addApplication = () => {
     if (!newCompany) return;
@@ -979,10 +944,10 @@ function InternshipTab() {
     setLoading(true);
     setResponse('');
     const prompts = {
-      find: `List 15 best internship opportunities for Indian college students in ${domain || 'software engineering'} with skills: ${skills || 'Python, React'}. For each: company, role, stipend, duration, location, how to apply, and eligibility. Include both product companies and startups.`,
-      match: `Check resume match for internship applications. Student profile: Skills: ${skills}, Domain: ${domain}, CGPA: ${cgpa}. Which types of companies should they target? What's missing from their profile? How to improve match rate?`,
+      find: `List 15 best internship opportunities for Indian college students in ${domain || 'software engineering'} with skills: ${skills || 'Python, React'}. For each: company, role, stipend, duration, location, how to apply, and eligibility.`,
+      match: `Check resume match for internship applications. Student profile: Skills: ${skills}, Domain: ${domain}, CGPA: ${cgpa}. Which types of companies should they target? What's missing? How to improve match rate?`,
       eligibility: `Check eligibility for internships at top Indian companies for a student with: Skills: ${skills}, CGPA: ${cgpa}, Domain: ${domain}. List eligible companies, borderline cases, and companies to target after improvements.`,
-      email: `Write a cold email template for an Indian college student applying for ${domain || 'software engineering'} internship with skills: ${skills}. Make it professional, concise, and compelling. Include subject line and follow-up email.`,
+      email: `Write a cold email template for an Indian college student applying for ${domain || 'software engineering'} internship with skills: ${skills}. Professional, concise, compelling. Include subject line and follow-up email.`,
     };
     try {
       const res = await askClaude(prompts[activeFeature]);
@@ -997,8 +962,6 @@ function InternshipTab() {
     <div>
       <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>💼 Internship Hub</h2>
       <p style={{ color: '#aaa', marginBottom: '24px' }}>Find internships and track your applications</p>
-
-      {/* Application Tracker */}
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
         <h3 style={{ fontSize: '15px', marginBottom: '14px' }}>📋 Application Tracker</h3>
         <div style={{ display: 'flex', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
@@ -1020,8 +983,6 @@ function InternshipTab() {
           ))}
         </div>
       </div>
-
-      {/* AI Features */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
         {features.map(f => (
           <button key={f.id} onClick={() => setActiveFeature(f.id)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid', borderColor: activeFeature === f.id ? '#7C3AED' : '#2a2a4a', background: activeFeature === f.id ? '#7C3AED22' : 'transparent', color: activeFeature === f.id ? '#7C3AED' : '#aaa', cursor: 'pointer', fontSize: '13px' }}>
@@ -1029,7 +990,6 @@ function InternshipTab() {
           </button>
         ))}
       </div>
-
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '16px' }}>
           <div style={{ flex: 1, minWidth: '160px' }}>
@@ -1049,7 +1009,6 @@ function InternshipTab() {
           {loading ? '⏳ Generating...' : '✨ Generate with AI'}
         </button>
       </div>
-
       {response && (
         <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '24px' }}>
           <h3 style={{ color: '#7C3AED', marginBottom: '16px' }}>AI Response</h3>
@@ -1059,6 +1018,7 @@ function InternshipTab() {
     </div>
   );
 }
+
 function CommunityTab() {
   const [post, setPost] = useState('');
   const [category, setCategory] = useState('Discussion');
@@ -1072,28 +1032,11 @@ function CommunityTab() {
   const [likedPosts, setLikedPosts] = useState([]);
 
   const categories = ['Discussion', 'Project Showcase', 'Doubt', 'Team Formation', 'Achievement'];
-
-  const categoryColors = {
-    'Discussion': '#3B82F6',
-    'Project Showcase': '#10B981',
-    'Doubt': '#F59E0B',
-    'Team Formation': '#8B5CF6',
-    'Achievement': '#EF4444',
-  };
+  const categoryColors = { 'Discussion': '#3B82F6', 'Project Showcase': '#10B981', 'Doubt': '#F59E0B', 'Team Formation': '#8B5CF6', 'Achievement': '#EF4444' };
 
   const addPost = () => {
     if (!post.trim()) return;
-    const newPost = {
-      id: posts.length + 1,
-      author: 'You',
-      college: 'Your College',
-      category,
-      content: post,
-      likes: 0,
-      time: 'Just now',
-      avatar: 'Y',
-    };
-    setPosts(prev => [newPost, ...prev]);
+    setPosts(prev => [{ id: posts.length + 1, author: 'You', college: 'Your College', category, content: post, likes: 0, time: 'Just now', avatar: 'Y' }, ...prev]);
     setPost('');
   };
 
@@ -1106,8 +1049,6 @@ function CommunityTab() {
     <div>
       <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>🌐 Student Community</h2>
       <p style={{ color: '#aaa', marginBottom: '24px' }}>Connect with students across India</p>
-
-      {/* Stats */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
         {[['👥', '10,000+', 'Students'], ['🏫', '500+', 'Colleges'], ['💬', '50K+', 'Posts'], ['🤝', '2K+', 'Teams Formed']].map(([icon, val, label]) => (
           <div key={label} style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '10px', padding: '14px 20px', textAlign: 'center', flex: 1, minWidth: '100px' }}>
@@ -1117,54 +1058,32 @@ function CommunityTab() {
           </div>
         ))}
       </div>
-
-      {/* Create Post */}
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
         <h3 style={{ fontSize: '15px', marginBottom: '14px' }}>✍️ Create Post</h3>
         <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
           {categories.map(c => (
-            <span key={c} onClick={() => setCategory(c)} style={{ padding: '5px 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', border: '1px solid', borderColor: category === c ? categoryColors[c] : '#2a2a4a', background: category === c ? `${categoryColors[c]}22` : 'transparent', color: category === c ? categoryColors[c] : '#aaa' }}>
-              {c}
-            </span>
+            <span key={c} onClick={() => setCategory(c)} style={{ padding: '5px 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', border: '1px solid', borderColor: category === c ? categoryColors[c] : '#2a2a4a', background: category === c ? `${categoryColors[c]}22` : 'transparent', color: category === c ? categoryColors[c] : '#aaa' }}>{c}</span>
           ))}
         </div>
-        <textarea value={post} onChange={e => setPost(e.target.value)} placeholder="Share something with the community... a doubt, achievement, project, or looking for teammates?" rows={3}
-          style={{ width: '100%', padding: '10px', background: '#0f0f1a', border: '1px solid #2a2a4a', borderRadius: '8px', color: 'white', fontSize: '14px', boxSizing: 'border-box', resize: 'none', marginBottom: '10px' }} />
-        <button onClick={addPost} style={{ padding: '10px 24px', background: '#7C3AED', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>
-          Post →
-        </button>
+        <textarea value={post} onChange={e => setPost(e.target.value)} placeholder="Share something with the community..." rows={3} style={{ width: '100%', padding: '10px', background: '#0f0f1a', border: '1px solid #2a2a4a', borderRadius: '8px', color: 'white', fontSize: '14px', boxSizing: 'border-box', resize: 'none', marginBottom: '10px' }} />
+        <button onClick={addPost} style={{ padding: '10px 24px', background: '#7C3AED', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>Post →</button>
       </div>
-
-      {/* Filter */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-        {['All', ...categories].map(c => (
-          <span key={c} style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', background: '#1a1a2e', border: '1px solid #2a2a4a', color: '#aaa' }}>{c}</span>
-        ))}
-      </div>
-
-      {/* Posts Feed */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {posts.map(p => (
           <div key={p.id} style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '38px', height: '38px', background: 'linear-gradient(135deg, #7C3AED, #3B82F6)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '700' }}>
-                  {p.avatar}
-                </div>
+                <div style={{ width: '38px', height: '38px', background: 'linear-gradient(135deg, #7C3AED, #3B82F6)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '700' }}>{p.avatar}</div>
                 <div>
                   <div style={{ fontSize: '14px', fontWeight: '600' }}>{p.author}</div>
                   <div style={{ fontSize: '12px', color: '#666' }}>{p.college} • {p.time}</div>
                 </div>
               </div>
-              <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '11px', background: `${categoryColors[p.category]}22`, color: categoryColors[p.category], border: `1px solid ${categoryColors[p.category]}44` }}>
-                {p.category}
-              </span>
+              <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '11px', background: `${categoryColors[p.category]}22`, color: categoryColors[p.category] }}>{p.category}</span>
             </div>
             <p style={{ fontSize: '14px', color: '#ddd', lineHeight: '1.6', marginBottom: '12px' }}>{p.content}</p>
             <div style={{ display: 'flex', gap: '16px' }}>
-              <span onClick={() => toggleLike(p.id)} style={{ fontSize: '13px', color: likedPosts.includes(p.id) ? '#ef4444' : '#666', cursor: 'pointer' }}>
-                {likedPosts.includes(p.id) ? '❤️' : '🤍'} {p.likes}
-              </span>
+              <span onClick={() => toggleLike(p.id)} style={{ fontSize: '13px', color: likedPosts.includes(p.id) ? '#ef4444' : '#666', cursor: 'pointer' }}>{likedPosts.includes(p.id) ? '❤️' : '🤍'} {p.likes}</span>
               <span style={{ fontSize: '13px', color: '#666', cursor: 'pointer' }}>💬 Reply</span>
               <span style={{ fontSize: '13px', color: '#666', cursor: 'pointer' }}>🔗 Share</span>
             </div>
@@ -1174,6 +1093,7 @@ function CommunityTab() {
     </div>
   );
 }
+
 function EventsTab() {
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
@@ -1189,25 +1109,16 @@ function EventsTab() {
     { id: 6, name: 'System Design for Beginners', host: 'Scaler', date: 'Jun 28, 2026', time: '7:00 PM', type: 'Workshop', price: 'Free', spots: '400 left' },
   ];
 
-  const typeColors = {
-    'Workshop': '#7C3AED',
-    'Webinar': '#3B82F6',
-    'Live Session': '#10B981',
-  };
-
-  const features = [
-    { id: 'find', label: '🔍 Find Events' },
-    { id: 'suggest', label: '💡 Suggest Events' },
-    { id: 'prepare', label: '📝 Event Prep' },
-  ];
+  const typeColors = { 'Workshop': '#7C3AED', 'Webinar': '#3B82F6', 'Live Session': '#10B981' };
+  const features = [{ id: 'find', label: '🔍 Find Events' }, { id: 'suggest', label: '💡 Suggest Events' }, { id: 'prepare', label: '📝 Event Prep' }];
 
   const generate = async () => {
     setLoading(true);
     setResponse('');
     const prompts = {
       find: `List 10 upcoming tech events, webinars, and workshops for Indian college students in June-July 2026. Include: name, host, date, topic, registration link, and why to attend.`,
-      suggest: `Suggest the best tech events, conferences, and webinars an Indian college student should attend in 2026 to boost their career. Include online and offline events across India.`,
-      prepare: `How should an Indian college student prepare for and get the most out of tech webinars and workshops? Include: before, during, and after tips, networking advice, and how to add it to resume.`,
+      suggest: `Suggest the best tech events, conferences, and webinars an Indian college student should attend in 2026 to boost their career.`,
+      prepare: `How should an Indian college student prepare for and get the most out of tech webinars and workshops?`,
     };
     try {
       const res = await askClaude(prompts[activeFeature]);
@@ -1222,8 +1133,6 @@ function EventsTab() {
     <div>
       <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>🎤 Webinar & Events</h2>
       <p style={{ color: '#aaa', marginBottom: '24px' }}>Discover and register for tech events</p>
-
-      {/* Upcoming Events */}
       <div style={{ marginBottom: '24px' }}>
         <h3 style={{ fontSize: '16px', marginBottom: '16px' }}>📅 Upcoming Events</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
@@ -1235,38 +1144,17 @@ function EventsTab() {
               </div>
               <h4 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '6px' }}>{e.name}</h4>
               <p style={{ fontSize: '13px', color: '#666', marginBottom: '10px' }}>by {e.host}</p>
-              <div style={{ fontSize: '12px', color: '#aaa', marginBottom: '12px' }}>
-                📅 {e.date} • ⏰ {e.time}<br />
-                👥 {e.spots}
-              </div>
-              <button
-                onClick={() => setRegistered(prev => prev.includes(e.id) ? prev.filter(id => id !== e.id) : [...prev, e.id])}
-                style={{ width: '100%', padding: '8px', background: registered.includes(e.id) ? '#22c55e22' : '#7C3AED', border: registered.includes(e.id) ? '1px solid #22c55e' : 'none', borderRadius: '8px', color: registered.includes(e.id) ? '#22c55e' : 'white', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
+              <div style={{ fontSize: '12px', color: '#aaa', marginBottom: '12px' }}>📅 {e.date} • ⏰ {e.time}<br />👥 {e.spots}</div>
+              <button onClick={() => setRegistered(prev => prev.includes(e.id) ? prev.filter(id => id !== e.id) : [...prev, e.id])} style={{ width: '100%', padding: '8px', background: registered.includes(e.id) ? '#22c55e22' : '#7C3AED', border: registered.includes(e.id) ? '1px solid #22c55e' : 'none', borderRadius: '8px', color: registered.includes(e.id) ? '#22c55e' : 'white', cursor: 'pointer', fontSize: '13px' }}>
                 {registered.includes(e.id) ? '✅ Registered' : 'Register Free →'}
               </button>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Registered Events */}
-      {registered.length > 0 && (
-        <div style={{ background: '#1a1a2e', border: '1px solid #22c55e44', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '15px', marginBottom: '12px', color: '#22c55e' }}>✅ My Registered Events ({registered.length})</h3>
-          {events.filter(e => registered.includes(e.id)).map(e => (
-            <div key={e.id} style={{ fontSize: '14px', color: '#aaa', padding: '6px 0', borderBottom: '1px solid #2a2a4a' }}>
-              📌 {e.name} — {e.date}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* AI Features */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
         {features.map(f => (
-          <button key={f.id} onClick={() => setActiveFeature(f.id)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid', borderColor: activeFeature === f.id ? '#7C3AED' : '#2a2a4a', background: activeFeature === f.id ? '#7C3AED22' : 'transparent', color: activeFeature === f.id ? '#7C3AED' : '#aaa', cursor: 'pointer', fontSize: '13px' }}>
-            {f.label}
-          </button>
+          <button key={f.id} onClick={() => setActiveFeature(f.id)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid', borderColor: activeFeature === f.id ? '#7C3AED' : '#2a2a4a', background: activeFeature === f.id ? '#7C3AED22' : 'transparent', color: activeFeature === f.id ? '#7C3AED' : '#aaa', cursor: 'pointer', fontSize: '13px' }}>{f.label}</button>
         ))}
       </div>
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
@@ -1282,7 +1170,9 @@ function EventsTab() {
       )}
     </div>
   );
-}function ProductivityTab() {
+}
+
+function ProductivityTab() {
   const [tasks, setTasks] = useState([
     { id: 1, text: 'Complete DSA assignment', done: false, priority: 'high' },
     { id: 2, text: 'Submit ML project report', done: false, priority: 'high' },
@@ -1305,63 +1195,34 @@ function EventsTab() {
   ]);
 
   const priorityColors = { high: '#ef4444', medium: '#f59e0b', low: '#22c55e' };
-
-  const addTask = () => {
-    if (!newTask.trim()) return;
-    setTasks(prev => [...prev, { id: Date.now(), text: newTask, done: false, priority }]);
-    setNewTask('');
-  };
-
+  const addTask = () => { if (!newTask.trim()) return; setTasks(prev => [...prev, { id: Date.now(), text: newTask, done: false, priority }]); setNewTask(''); };
   const toggleTask = (id) => setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
   const deleteTask = (id) => setTasks(prev => prev.filter(t => t.id !== id));
 
   const startPomodoro = () => {
-    if (pomodoroRunning) {
-      clearInterval(pomodoroInterval);
-      setPomodoroRunning(false);
-    } else {
+    if (pomodoroRunning) { clearInterval(pomodoroInterval); setPomodoroRunning(false); }
+    else {
       const interval = setInterval(() => {
-        setPomodoroTime(prev => {
-          if (prev <= 1) { clearInterval(interval); setPomodoroRunning(false); return 25 * 60; }
-          return prev - 1;
-        });
+        setPomodoroTime(prev => { if (prev <= 1) { clearInterval(interval); setPomodoroRunning(false); return 25 * 60; } return prev - 1; });
       }, 1000);
       setPomodoroInterval(interval);
       setPomodoroRunning(true);
     }
   };
 
-  const resetPomodoro = () => {
-    clearInterval(pomodoroInterval);
-    setPomodoroRunning(false);
-    setPomodoroTime(25 * 60);
-  };
-
-  const getDaysLeft = (date) => {
-    const diff = new Date(date) - new Date();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
-  };
-
-  const addExam = () => {
-    if (!examName || !examDate) return;
-    setExams(prev => [...prev, { name: examName, date: examDate }]);
-    setExamName('');
-    setExamDate('');
-  };
+  const resetPomodoro = () => { clearInterval(pomodoroInterval); setPomodoroRunning(false); setPomodoroTime(25 * 60); };
+  const getDaysLeft = (date) => Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24));
+  const addExam = () => { if (!examName || !examDate) return; setExams(prev => [...prev, { name: examName, date: examDate }]); setExamName(''); setExamDate(''); };
 
   const generate = async () => {
     setLoading(true);
     setResponse('');
     const prompts = {
-      planner: `Create a weekly study planner for an Indian engineering student balancing college, placements, and projects. Include: daily schedule, study hours, breaks, and productivity tips.`,
-      tips: `Give the top 20 productivity tips specifically for Indian college students preparing for placements. Include time management, focus techniques, and avoiding distractions.`,
+      planner: `Create a weekly study planner for an Indian engineering student balancing college, placements, and projects.`,
+      tips: `Give the top 20 productivity tips specifically for Indian college students preparing for placements.`,
     };
-    try {
-      const res = await askClaude(prompts[activeFeature === 'planner' ? 'planner' : 'tips']);
-      setResponse(res);
-    } catch (e) {
-      setResponse('Error connecting to AI.');
-    }
+    try { const res = await askClaude(prompts[activeFeature === 'planner' ? 'planner' : 'tips']); setResponse(res); }
+    catch (e) { setResponse('Error connecting to AI.'); }
     setLoading(false);
   };
 
@@ -1372,13 +1233,8 @@ function EventsTab() {
     <div>
       <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>⏰ Productivity System</h2>
       <p style={{ color: '#aaa', marginBottom: '24px' }}>Stay focused and organized</p>
-
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-
-        {/* Left Column */}
         <div style={{ flex: 2, minWidth: '300px' }}>
-
-          {/* Task Manager */}
           <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '15px', marginBottom: '14px' }}>✅ Task Manager</h3>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
@@ -1400,12 +1256,8 @@ function EventsTab() {
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
-              {tasks.filter(t => t.done).length}/{tasks.length} completed
-            </div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>{tasks.filter(t => t.done).length}/{tasks.length} completed</div>
           </div>
-
-          {/* Exam Countdown */}
           <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px' }}>
             <h3 style={{ fontSize: '15px', marginBottom: '14px' }}>📅 Exam Countdown</h3>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
@@ -1419,53 +1271,34 @@ function EventsTab() {
                 return (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#0f0f1a', borderRadius: '8px', border: `1px solid ${days <= 3 ? '#ef444444' : '#2a2a4a'}` }}>
                     <span style={{ fontSize: '13px' }}>{e.name}</span>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: days <= 3 ? '#ef4444' : days <= 7 ? '#f59e0b' : '#22c55e' }}>
-                      {days > 0 ? `${days} days left` : 'Today!'}
-                    </span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: days <= 3 ? '#ef4444' : days <= 7 ? '#f59e0b' : '#22c55e' }}>{days > 0 ? `${days} days left` : 'Today!'}</span>
                   </div>
                 );
               })}
             </div>
           </div>
         </div>
-
-        {/* Right Column */}
         <div style={{ flex: 1, minWidth: '220px' }}>
-
-          {/* Pomodoro Timer */}
           <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px', marginBottom: '16px', textAlign: 'center' }}>
             <h3 style={{ fontSize: '15px', marginBottom: '16px' }}>🍅 Pomodoro Timer</h3>
-            <div style={{ fontSize: '56px', fontWeight: '800', color: pomodoroRunning ? '#7C3AED' : '#ddd', marginBottom: '16px', fontFamily: 'monospace' }}>
-              {minutes}:{seconds}
-            </div>
+            <div style={{ fontSize: '56px', fontWeight: '800', color: pomodoroRunning ? '#7C3AED' : '#ddd', marginBottom: '16px', fontFamily: 'monospace' }}>{minutes}:{seconds}</div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-              <button onClick={startPomodoro} style={{ padding: '10px 20px', background: pomodoroRunning ? '#ef444422' : '#7C3AED', border: pomodoroRunning ? '1px solid #ef4444' : 'none', borderRadius: '8px', color: pomodoroRunning ? '#ef4444' : 'white', cursor: 'pointer', fontSize: '14px' }}>
-                {pomodoroRunning ? '⏸ Pause' : '▶ Start'}
-              </button>
-              <button onClick={resetPomodoro} style={{ padding: '10px 16px', background: 'transparent', border: '1px solid #2a2a4a', borderRadius: '8px', color: '#aaa', cursor: 'pointer', fontSize: '14px' }}>
-                🔄
-              </button>
+              <button onClick={startPomodoro} style={{ padding: '10px 20px', background: pomodoroRunning ? '#ef444422' : '#7C3AED', border: pomodoroRunning ? '1px solid #ef4444' : 'none', borderRadius: '8px', color: pomodoroRunning ? '#ef4444' : 'white', cursor: 'pointer', fontSize: '14px' }}>{pomodoroRunning ? '⏸ Pause' : '▶ Start'}</button>
+              <button onClick={resetPomodoro} style={{ padding: '10px 16px', background: 'transparent', border: '1px solid #2a2a4a', borderRadius: '8px', color: '#aaa', cursor: 'pointer', fontSize: '14px' }}>🔄</button>
             </div>
             <p style={{ fontSize: '12px', color: '#666', marginTop: '12px' }}>25 min focus • 5 min break</p>
           </div>
-
-          {/* AI Planner */}
           <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px' }}>
             <h3 style={{ fontSize: '15px', marginBottom: '14px' }}>🤖 AI Planner</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
               {[['planner', '📅 Weekly Planner'], ['tips', '💡 Productivity Tips']].map(([id, label]) => (
-                <button key={id} onClick={() => setActiveFeature(id)} style={{ padding: '9px', borderRadius: '8px', border: '1px solid', borderColor: activeFeature === id ? '#7C3AED' : '#2a2a4a', background: activeFeature === id ? '#7C3AED22' : 'transparent', color: activeFeature === id ? '#7C3AED' : '#aaa', cursor: 'pointer', fontSize: '13px' }}>
-                  {label}
-                </button>
+                <button key={id} onClick={() => setActiveFeature(id)} style={{ padding: '9px', borderRadius: '8px', border: '1px solid', borderColor: activeFeature === id ? '#7C3AED' : '#2a2a4a', background: activeFeature === id ? '#7C3AED22' : 'transparent', color: activeFeature === id ? '#7C3AED' : '#aaa', cursor: 'pointer', fontSize: '13px' }}>{label}</button>
               ))}
             </div>
-            <button onClick={generate} disabled={loading} style={{ width: '100%', padding: '10px', background: '#7C3AED', border: 'none', borderRadius: '8px', color: 'white', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
-              {loading ? '⏳...' : '✨ Generate'}
-            </button>
+            <button onClick={generate} disabled={loading} style={{ width: '100%', padding: '10px', background: '#7C3AED', border: 'none', borderRadius: '8px', color: 'white', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>{loading ? '⏳...' : '✨ Generate'}</button>
           </div>
         </div>
       </div>
-
       {response && (
         <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '24px', marginTop: '16px' }}>
           <h3 style={{ color: '#7C3AED', marginBottom: '16px' }}>AI Response</h3>
@@ -1475,6 +1308,7 @@ function EventsTab() {
     </div>
   );
 }
+
 function SkillTrackerTab() {
   const [skills, setSkills] = useState([
     { name: 'Python', level: 75, category: 'Language' },
@@ -1501,12 +1335,7 @@ function SkillTrackerTab() {
   ];
 
   const categories = ['Language', 'Frontend', 'Backend', 'Database', 'AI/ML', 'CS Fundamentals', 'DevOps', 'Mobile'];
-
-  const levelColors = (level) => {
-    if (level >= 75) return '#22c55e';
-    if (level >= 50) return '#f59e0b';
-    return '#ef4444';
-  };
+  const levelColors = (level) => level >= 75 ? '#22c55e' : level >= 50 ? '#f59e0b' : '#ef4444';
 
   const addSkill = () => {
     if (!newSkill.trim()) return;
@@ -1515,13 +1344,8 @@ function SkillTrackerTab() {
     setNewLevel(50);
   };
 
-  const updateLevel = (index, level) => {
-    setSkills(prev => prev.map((s, i) => i === index ? { ...s, level: parseInt(level) } : s));
-  };
-
-  const deleteSkill = (index) => {
-    setSkills(prev => prev.filter((_, i) => i !== index));
-  };
+  const updateLevel = (index, level) => setSkills(prev => prev.map((s, i) => i === index ? { ...s, level: parseInt(level) } : s));
+  const deleteSkill = (index) => setSkills(prev => prev.filter((_, i) => i !== index));
 
   const generate = async () => {
     setLoading(true);
@@ -1532,12 +1356,8 @@ function SkillTrackerTab() {
       improve: `Create a 30-day skill improvement plan for an Indian college student with these skills: ${skillList}. Daily tasks, resources, mini projects, and milestones for each skill.`,
       compare: `Compare these skills: ${skillList} against what top Indian companies (TCS, Infosys, Flipkart, Amazon, Google) expect. Show gap analysis and what to focus on for each company tier.`,
     };
-    try {
-      const res = await askClaude(prompts[activeFeature]);
-      setResponse(res);
-    } catch (e) {
-      setResponse('Error connecting to AI.');
-    }
+    try { const res = await askClaude(prompts[activeFeature]); setResponse(res); }
+    catch (e) { setResponse('Error connecting to AI.'); }
     setLoading(false);
   };
 
@@ -1545,8 +1365,6 @@ function SkillTrackerTab() {
     <div>
       <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>📈 Skill Tracker</h2>
       <p style={{ color: '#aaa', marginBottom: '24px' }}>Track your growth and identify skill gaps</p>
-
-      {/* Stats */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
         {stats.map((s, i) => (
           <div key={i} style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '10px', padding: '14px 18px', textAlign: 'center', flex: 1, minWidth: '90px' }}>
@@ -1556,8 +1374,6 @@ function SkillTrackerTab() {
           </div>
         ))}
       </div>
-
-      {/* Add Skill */}
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
         <h3 style={{ fontSize: '15px', marginBottom: '14px' }}>➕ Add Skill</h3>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -1572,8 +1388,6 @@ function SkillTrackerTab() {
           <button onClick={addSkill} style={{ padding: '9px 18px', background: '#7C3AED', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>Add</button>
         </div>
       </div>
-
-      {/* Skills List */}
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
         <h3 style={{ fontSize: '15px', marginBottom: '16px' }}>🎯 My Skills</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -1597,19 +1411,13 @@ function SkillTrackerTab() {
           ))}
         </div>
       </div>
-
-      {/* AI Analysis */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
         {[['analyze', '🔍 Analyze Skills'], ['improve', '📈 Improvement Plan'], ['compare', '🏢 Company Comparison']].map(([id, label]) => (
-          <button key={id} onClick={() => setActiveFeature(id)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid', borderColor: activeFeature === id ? '#7C3AED' : '#2a2a4a', background: activeFeature === id ? '#7C3AED22' : 'transparent', color: activeFeature === id ? '#7C3AED' : '#aaa', cursor: 'pointer', fontSize: '13px' }}>
-            {label}
-          </button>
+          <button key={id} onClick={() => setActiveFeature(id)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid', borderColor: activeFeature === id ? '#7C3AED' : '#2a2a4a', background: activeFeature === id ? '#7C3AED22' : 'transparent', color: activeFeature === id ? '#7C3AED' : '#aaa', cursor: 'pointer', fontSize: '13px' }}>{label}</button>
         ))}
       </div>
       <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
-        <button onClick={generate} disabled={loading} style={{ padding: '12px 32px', background: '#7C3AED', border: 'none', borderRadius: '8px', color: 'white', fontSize: '15px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
-          {loading ? '⏳ Generating...' : '✨ Analyze with AI'}
-        </button>
+        <button onClick={generate} disabled={loading} style={{ padding: '12px 32px', background: '#7C3AED', border: 'none', borderRadius: '8px', color: 'white', fontSize: '15px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>{loading ? '⏳ Generating...' : '✨ Analyze with AI'}</button>
       </div>
       {response && (
         <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '12px', padding: '24px' }}>
@@ -1620,6 +1428,7 @@ function SkillTrackerTab() {
     </div>
   );
 }
+
 function CareerVerseTab() {
   return (
     <div style={{ margin: '-32px', minHeight: '100vh', overflow: 'auto' }}>
@@ -1627,4 +1436,5 @@ function CareerVerseTab() {
     </div>
   );
 }
+
 export default Dashboard;
