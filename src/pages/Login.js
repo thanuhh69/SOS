@@ -34,13 +34,13 @@ function Login({ onNavigate }) {
   };
 
   return (
-    <div style={{ background: '#1f608cff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}>
-      <div style={{ background: '#31ab68ff', border: '1px solid #2828d0ff', borderRadius: '20px', padding: '44px', width: '100%', maxWidth: '420px', color: 'white' }}>
+    <div style={{ background: '#080814', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}>
+      <div style={{ background: '#0d0d1f', border: '1px solid #1a1a3a', borderRadius: '20px', padding: '44px', width: '100%', maxWidth: '420px', color: 'white' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #7C3AED, #3B82F6)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', margin: '0 auto 16px' }}>S</div>
           <h2 style={{ fontSize: '26px', fontWeight: '700', marginBottom: '8px' }}>Welcome back 👋</h2>
-          <p style={{ color: '#750404ff', fontSize: '14px' }}>Login to your StudentOS account</p>
+          <p style={{ color: '#666', fontSize: '14px' }}>Login to your StudentOS account</p>
         </div>
 
         <button onClick={handleGoogle} disabled={loading} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid #333', borderRadius: '10px', color: 'white', fontSize: '15px', cursor: 'pointer', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
@@ -53,7 +53,7 @@ function Login({ onNavigate }) {
           <div style={{ flex: 1, height: '1px', background: '#1a1a3a' }} />
         </div>
 
-        {error && <div style={{ background: '#29df9c22', border: '1px solid #110303ff', borderRadius: '8px', padding: '10px', fontSize: '13px', color: '#ef4444', marginBottom: '16px' }}>{error}</div>}
+        {error && <div style={{ background: '#ef444422', border: '1px solid #ef4444', borderRadius: '8px', padding: '10px', fontSize: '13px', color: '#ef4444', marginBottom: '16px' }}>{error}</div>}
 
         <div style={{ marginBottom: '16px' }}>
           <label style={{ fontSize: '13px', color: '#888', display: 'block', marginBottom: '6px' }}>Email</label>
