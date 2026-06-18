@@ -3,23 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 
-const API_KEY = process.env.REACT_APP_GROQ_API_KEY || "";
-
-async function askClaude(prompt) {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  async function askClaude(prompt) {
+  const res = await fetch('https://studentos-backend-beac.onrender.com/api/chat', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_KEY}`
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 1000
-    })
+    body: JSON.stringify({ prompt })
   });
   const data = await res.json();
-  return data.choices[0].message.content;
+  return data.result;
 }
 
 function Dashboard({ onNavigate }) {
